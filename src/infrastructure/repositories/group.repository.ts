@@ -1,5 +1,4 @@
 import { GroupM } from 'src/domain/model/group';
-import { UserM } from 'src/domain/model/user';
 import { GroupRepository } from '../../domain/repositories/group.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Group } from '../entities/group.entity';
@@ -19,7 +18,10 @@ export class DatabaseGroupRepository implements GroupRepository {
   async insert(group: GroupM): Promise<GroupM> {
     const groupEntity = this.toGroupEntity(group);
     const result = await this.groupEntityRepository.insert(groupEntity);
-    return this.toGroup(result.generatedMaps[0] as Group);
+    return this.toGroup({
+      ...result.generatedMaps[0],
+      ...group,
+    } as Group);
   }
 
   async findAll(): Promise<GroupM[]> {
