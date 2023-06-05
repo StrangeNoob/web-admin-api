@@ -41,7 +41,7 @@ export class UserController {
 
   @Get('all')
   @ApiResponseType(UserPresenter, true)
-  async getTodos() {
+  async getUsers() {
     const users = await this.getAllUserUsecaseProxy.getInstance().execute();
     return users.map((user) => new UserPresenter(user));
   }

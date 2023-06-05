@@ -36,7 +36,7 @@ export class GroupController {
   constructor(
     @Inject(UsecasesProxyModule.GET_GROUP_USECASES_PROXY)
     private readonly getGroupUsecaseProxy: UseCaseProxy<getGroupUseCases>,
-    @Inject(UsecasesProxyModule.GET_USERS_USECASES_PROXY)
+    @Inject(UsecasesProxyModule.GET_GROUPS_USECASES_PROXY)
     private readonly getAllGroupsUsecaseProxy: UseCaseProxy<getGroupsUseCases>,
     @Inject(UsecasesProxyModule.GET_GROUPS_BY_ADMIN_USECASES_PROXY)
     private readonly getGroupsByAdminUsecaseProxy: UseCaseProxy<getGroupsByAdminUseCases>,
@@ -53,8 +53,10 @@ export class GroupController {
   @Get('/all')
   @ApiResponseType(GroupPresenter, true)
   async getGroups() {
-    const users = await this.getAllGroupsUsecaseProxy.getInstance().execute();
-    return users.map((user) => new GroupPresenter(user));
+    console.log('Controllers');
+    const groups = await this.getAllGroupsUsecaseProxy.getInstance().execute();
+    console.log(groups);
+    return groups.map((group) => new GroupPresenter(group));
   }
 
   @Get('/admin')

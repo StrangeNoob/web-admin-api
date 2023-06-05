@@ -14,8 +14,9 @@ export const getTypeOrmModuleOptions = (
     type: 'postgres',
     url: config.getDatabaseUrl(),
     entities: [User, Group, Transaction],
-    synchronize: false,
+    synchronize: true,
     ssl: true,
+    logging: true,
   } as TypeOrmModuleOptions;
 };
 

@@ -23,35 +23,51 @@ export class DatabaseGroupRepository implements GroupRepository {
   }
 
   async findAll(): Promise<GroupM[]> {
-    const groupEntities = await this.groupEntityRepository.find();
+    const groupEntities = await this.groupEntityRepository
+      .createQueryBuilder('group')
+      .leftJoinAndSelect('group.users', 'users')
+      .leftJoinAndSelect('group.admin', 'admin')
+      .getMany();
     return groupEntities.map((v) => this.toGroup(v));
   }
 
   async findById(id: number): Promise<GroupM> {
-    const groupEntity = await this.groupEntityRepository.findOneByOrFail({
-      id,
+    const groupEntity = await this.groupEntityRepository.findOne({
+      where: { id },
+      relations: ['users', 'admin'],
     });
+    console.log(groupEntity);
     return this.toGroup(groupEntity);
   }
 
-  async findByAdmin(admin: UserM): Promise<GroupM[]> {
-    const groupEntities = await this.groupEntityRepository.find({
-      where: {
-        admin_id: admin,
-      },
-    });
+  async findByAdmin(adminId: number): Promise<GroupM[]> {
+    const groupEntities = await this.groupEntityRepository
+      .createQueryBuilder('group')
+      .leftJoinAndSelect('group.users', 'user')
+      .leftJoinAndSelect('group.admin', 'admin')
+      .where('admin.id = :adminId', { adminId })
+      .getMany();
+
+    console.log(groupEntities);
     return groupEntities.map((v) => this.toGroup(v));
   }
 
   async updateUser(id: number, userId: number): Promise<GroupM> {
-    const groupEntity = await this.groupEntityRepository.findOneByOrFail({
-      id,
+    const groupEntity = await this.groupEntityRepository.findOne({
+      where: {
+        id,
+      },
+      relations: ['users'],
     });
 
     const userEntity = await this.databaseUserRepository.addUserToGroup(
       userId,
       groupEntity,
     );
+    console.log(groupEntity);
+    if (!groupEntity.users) {
+      groupEntity.users = [];
+    }
     groupEntity.users.push(userEntity);
     await this.groupEntityRepository.save(groupEntity);
     return this.toGroup(groupEntity);
@@ -66,7 +82,7 @@ export class DatabaseGroupRepository implements GroupRepository {
       id: admin_id,
     });
 
-    groupEntity.admin_id = adminEntity;
+    groupEntity.admin = adminEntity;
     await this.groupEntityRepository.save(groupEntity);
 
     return this.toGroup(groupEntity);
@@ -83,10 +99,10 @@ export class DatabaseGroupRepository implements GroupRepository {
     const groupModel: GroupM = new GroupM();
 
     groupModel.id = groupEntity.id;
-    groupModel.admin_id = groupEntity.admin_id;
-    groupModel.users = groupEntity.users.map((v) =>
-      this.databaseUserRepository.toUser(v),
-    );
+    groupModel.admin = groupEntity.admin;
+    groupModel.users = groupEntity.users
+      ? groupEntity.users.map((v) => this.databaseUserRepository.toUser(v))
+      : [];
     return groupModel;
   }
 
@@ -94,12 +110,10 @@ export class DatabaseGroupRepository implements GroupRepository {
     const groupEntity: Group = new Group();
 
     groupEntity.id = groupModel.id;
-    groupEntity.admin_id = this.databaseUserRepository.toUser(
-      groupModel.admin_id,
-    );
-    groupEntity.users = groupModel.users.map((v) =>
-      this.databaseUserRepository.toUserEntity(v),
-    );
+    groupEntity.admin = this.databaseUserRepository.toUser(groupModel.admin);
+    groupEntity.users = groupModel.users
+      ? groupModel.users.map((v) => this.databaseUserRepository.toUserEntity(v))
+      : [];
     return groupEntity;
   }
 }

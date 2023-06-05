@@ -11,7 +11,7 @@ export class createGroupUseCases {
   async execute(admin_id: number): Promise<GroupM> {
     const group = new GroupM();
     const admin = await this.userRepository.findById(admin_id);
-    group.admin_id = admin;
+    group.admin = admin;
     const result = await this.groupRepository.insert(group);
     return result;
   }

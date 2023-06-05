@@ -4,13 +4,13 @@ import { ExceptionsModule } from '../exceptions/exceptions.module';
 import { LoggerModule } from '../logger/logger.module';
 import { RepositoriesModule } from '../repositories/repositories.module';
 import { DatabaseUserRepository } from '../repositories/user.repository';
+import { DatabaseGroupRepository } from '../repositories/group.repository';
+import { DatabaseTransactionRepository } from '../repositories/transaction.repository';
 import { UseCaseProxy } from './usecases-proxy';
 import { addUserUseCases } from '../../usecases/user/addUser.usecases';
 import { deleteUserUseCases } from '../../usecases/user/deleteUser.usecases';
 import { getUserUseCases } from '../../usecases/user/getUser.usecases';
 import { getUsersUseCases } from '../../usecases/user/getUsers.usecases';
-import { LoggerService } from '../logger/logger.service';
-import { DatabaseGroupRepository } from '../repositories/group.repository';
 import { getGroupUseCases } from '../../usecases/group/getGroup.usecases';
 import { getGroupsUseCases } from '../../usecases/group/getGroups.usecases';
 import { getGroupsByAdminUseCases } from '../../usecases/group/getGroupByAdmin.usecases';
@@ -18,7 +18,12 @@ import { createGroupUseCases } from '../../usecases/group/createGroup.usecases';
 import { updateUserUseCases } from '../../usecases/group/updateUser.usecases';
 import { changeAdminUseCases } from '../../usecases/group/changeAdmin.usecases';
 import { deleteGroupUseCases } from '../../usecases/group/deletGroup.usecases';
-import { changeUserRoleUseCases } from 'src/usecases/user/changeRole.usecases';
+import { changeUserRoleUseCases } from '../../usecases/user/changeRole.usecases';
+import { getTransactionUsecases } from '../../usecases/transaction/getTransaction.usecase';
+import { getTransactionsUsecases } from '../../usecases/transaction/getTransactions.usecase';
+import { getTransactionByUserUsecases } from '../../usecases/transaction/getTransactionByUserId.usecases';
+import { addTransactionUsecases } from '../../usecases/transaction/addTransaction.usecase';
+import { deleteTransactionUsecases } from '../../usecases/transaction/deleteTransaction.usecase';
 
 @Module({
   imports: [
@@ -37,14 +42,22 @@ export class UsecasesProxyModule {
   static CHANGE_USER_ROLE_USECASES_PROXY = 'changeUserRoleUsecasesProxy';
 
   // Group Proxies
-
-  static GET_GROUP_USECASES_PROXY = 'getGROUPUsecasesProxy';
+  static GET_GROUP_USECASES_PROXY = 'getGroupUsecasesProxy';
   static GET_GROUPS_USECASES_PROXY = 'getGroupsUsecasesProxy';
   static GET_GROUPS_BY_ADMIN_USECASES_PROXY = 'getGroupsByAdminUsecasesProxy';
   static POST_GROUP_USECASES_PROXY = 'postGroupUsecasesProxy';
   static CHANGE_ADMIN_USECASES_PROXY = 'changeAdminUsecasesProxy';
   static ADD_USER_TO_GROUP_USECASES_PROXY = 'addUserToGroupUsecasesProxy';
   static DELETE_GROUP_USECASES_PROXY = 'deleteGroupUsecasesProxy';
+
+  // Transaction Proxies
+
+  static GET_TRANSACTION_USECASES_PROXY = 'getTransactionUsecasesProxy';
+  static GET_TRANSACTIONS_USECASES_PROXY = 'getTransactionsUsecasesProxy';
+  static GET_TRANSACTIONS_BY_USER_USECASES_PROXY =
+    'getTransactionsByUserUsecasesProxy';
+  static POST_TRANSACTION_USECASES_PROXY = 'postTransactionUsecasesProxy';
+  static DELETE_TRANSACTION_USECASES_PROXY = 'deleteTransactionUsecasesProxy';
 
   static register(): DynamicModule {
     return {
@@ -53,45 +66,32 @@ export class UsecasesProxyModule {
         {
           inject: [DatabaseUserRepository],
           provide: UsecasesProxyModule.GET_USER_USECASES_PROXY,
-          useFactory: (
-            logger: LoggerService,
-            userRepository: DatabaseUserRepository,
-          ) => new UseCaseProxy(new getUserUseCases(logger, userRepository)),
+          useFactory: (userRepository: DatabaseUserRepository) =>
+            new UseCaseProxy(new getUserUseCases(userRepository)),
         },
         {
           inject: [DatabaseUserRepository],
           provide: UsecasesProxyModule.GET_USERS_USECASES_PROXY,
-          useFactory: (
-            logger: LoggerService,
-            userRepository: DatabaseUserRepository,
-          ) => new UseCaseProxy(new getUsersUseCases(logger, userRepository)),
+          useFactory: (userRepository: DatabaseUserRepository) =>
+            new UseCaseProxy(new getUsersUseCases(userRepository)),
         },
         {
-          inject: [DatabaseUserRepository, DatabaseGroupRepository],
+          inject: [DatabaseUserRepository],
           provide: UsecasesProxyModule.POST_USER_USECASES_PROXY,
-          useFactory: (
-            logger: LoggerService,
-            userRepository: DatabaseUserRepository,
-          ) => new UseCaseProxy(new addUserUseCases(logger, userRepository)),
+          useFactory: (userRepository: DatabaseUserRepository) =>
+            new UseCaseProxy(new addUserUseCases(userRepository)),
         },
         {
           inject: [DatabaseUserRepository],
           provide: UsecasesProxyModule.DELETE_USER_USECASES_PROXY,
-          useFactory: (
-            logger: LoggerService,
-            userRepository: DatabaseUserRepository,
-          ) => new UseCaseProxy(new deleteUserUseCases(logger, userRepository)),
+          useFactory: (userRepository: DatabaseUserRepository) =>
+            new UseCaseProxy(new deleteUserUseCases(userRepository)),
         },
         {
           inject: [DatabaseUserRepository],
           provide: UsecasesProxyModule.CHANGE_USER_ROLE_USECASES_PROXY,
-          useFactory: (
-            logger: LoggerService,
-            userRepository: DatabaseUserRepository,
-          ) =>
-            new UseCaseProxy(
-              new changeUserRoleUseCases(logger, userRepository),
-            ),
+          useFactory: (userRepository: DatabaseUserRepository) =>
+            new UseCaseProxy(new changeUserRoleUseCases(userRepository)),
         },
         {
           inject: [DatabaseGroupRepository],
@@ -111,10 +111,7 @@ export class UsecasesProxyModule {
           useFactory: (
             userRepository: DatabaseUserRepository,
             groupRepository: DatabaseGroupRepository,
-          ) =>
-            new UseCaseProxy(
-              new getGroupsByAdminUseCases(userRepository, groupRepository),
-            ),
+          ) => new UseCaseProxy(new getGroupsByAdminUseCases(groupRepository)),
         },
         {
           inject: [DatabaseUserRepository, DatabaseGroupRepository],
@@ -145,6 +142,53 @@ export class UsecasesProxyModule {
           useFactory: (groupRepository: DatabaseGroupRepository) =>
             new UseCaseProxy(new deleteGroupUseCases(groupRepository)),
         },
+        {
+          inject: [DatabaseTransactionRepository],
+          provide: UsecasesProxyModule.GET_TRANSACTION_USECASES_PROXY,
+          useFactory: (transactionRepository: DatabaseTransactionRepository) =>
+            new UseCaseProxy(new getTransactionUsecases(transactionRepository)),
+        },
+        {
+          inject: [DatabaseTransactionRepository],
+          provide: UsecasesProxyModule.GET_TRANSACTIONS_USECASES_PROXY,
+          useFactory: (transactionRepository: DatabaseTransactionRepository) =>
+            new UseCaseProxy(
+              new getTransactionsUsecases(transactionRepository),
+            ),
+        },
+        {
+          inject: [DatabaseTransactionRepository],
+          provide: UsecasesProxyModule.GET_TRANSACTIONS_BY_USER_USECASES_PROXY,
+          useFactory: (transactionRepository: DatabaseTransactionRepository) =>
+            new UseCaseProxy(
+              new getTransactionByUserUsecases(transactionRepository),
+            ),
+        },
+        {
+          inject: [DatabaseTransactionRepository],
+          provide: UsecasesProxyModule.GET_TRANSACTION_USECASES_PROXY,
+          useFactory: (transactionRepository: DatabaseTransactionRepository) =>
+            new UseCaseProxy(new getTransactionUsecases(transactionRepository)),
+        },
+        {
+          inject: [DatabaseTransactionRepository, DatabaseUserRepository],
+          provide: UsecasesProxyModule.POST_TRANSACTION_USECASES_PROXY,
+          useFactory: (
+            transactionRepository: DatabaseTransactionRepository,
+            userRepository: DatabaseUserRepository,
+          ) =>
+            new UseCaseProxy(
+              new addTransactionUsecases(transactionRepository, userRepository),
+            ),
+        },
+        {
+          inject: [DatabaseTransactionRepository],
+          provide: UsecasesProxyModule.DELETE_TRANSACTION_USECASES_PROXY,
+          useFactory: (transactionRepository: DatabaseTransactionRepository) =>
+            new UseCaseProxy(
+              new deleteTransactionUsecases(transactionRepository),
+            ),
+        },
       ],
       exports: [
         UsecasesProxyModule.GET_USER_USECASES_PROXY,
@@ -159,6 +203,11 @@ export class UsecasesProxyModule {
         UsecasesProxyModule.ADD_USER_TO_GROUP_USECASES_PROXY,
         UsecasesProxyModule.CHANGE_ADMIN_USECASES_PROXY,
         UsecasesProxyModule.DELETE_GROUP_USECASES_PROXY,
+        UsecasesProxyModule.GET_TRANSACTION_USECASES_PROXY,
+        UsecasesProxyModule.GET_TRANSACTIONS_USECASES_PROXY,
+        UsecasesProxyModule.GET_TRANSACTIONS_BY_USER_USECASES_PROXY,
+        UsecasesProxyModule.POST_TRANSACTION_USECASES_PROXY,
+        UsecasesProxyModule.DELETE_TRANSACTION_USECASES_PROXY,
       ],
     };
   }

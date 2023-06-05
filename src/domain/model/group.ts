@@ -2,6 +2,6 @@ import { UserM } from './user';
 
 export class GroupM {
   id: number;
-  admin_id: UserM;
+  admin: UserM;
   users: UserM[];
 }

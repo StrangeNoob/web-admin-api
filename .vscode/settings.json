@@ -10,6 +10,17 @@
             "database": "postgres",
             "username": "postgres",
             "password": "postgres"
+        },
+        {
+            "pgOptions": {
+                "ssl": true
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "Postgres Render",
+            "group": "Postgres Render",
+            "connectString": "postgres://postgres_strangenoob_user:SofagnlJeeiqDW22xt6tEQPwKByINFsz@dpg-chq9hnqk728ivvpojjjg-a.singapore-postgres.render.com/postgres_strangenoob"
         }
     ]
 }

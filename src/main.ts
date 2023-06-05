@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 import { AllExceptionFilter } from './infrastructure/common/filter/expection.filter';
 import { LoggerService } from './infrastructure/logger/logger.service';
-import { ValidationPipe } from '@nestjs/common';
 import { LoggingInterceptor } from './infrastructure/common/interceptors/logger.interceptor';
 import {
   ResponseFormat,
@@ -14,6 +15,9 @@ async function bootstrap() {
   const env = process.env.NODE_ENV;
 
   const app = await NestFactory.create(AppModule);
+
+  //cookie parser
+  app.use(cookieParser());
 
   //Filters
   app.useGlobalFilters(new AllExceptionFilter(new LoggerService()));

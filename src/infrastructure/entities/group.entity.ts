@@ -7,7 +7,7 @@ export class Group {
   id: number;
 
   @ManyToOne(() => User)
-  admin_id: User;
+  admin: User;
 
   @OneToMany(() => User, (user) => user.group)
   users: User[];
